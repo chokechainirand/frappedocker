@@ -1,0 +1,18 @@
+version: "3.3"
+
+services:
+  nginx:
+    image: nginx
+    container_name: test_proxy
+    labels:
+      - "traefik.enable=true" # enables the service
+      - "traefik.http.routers.nginx.rule=Host(`acer.myvnc.com`) && PathPrefix(`/web/`)" # domain to expose on
+      - "traefik.http.routers.nginx.entrypoints=websecure" # if you named your 443 entrypoint differently than webscure, substitute it here!
+      - "traefik.http.routers.nginx.tls.certresolver=letsencrypt" # if you named your cert resolver differently than letsencrypt, substitute it here!
+    networks:
+      - outside # Traefik network! If you named it differently, substitute it here and below.
+
+networks:
+   outside:
+     external:
+       name: traefik_default

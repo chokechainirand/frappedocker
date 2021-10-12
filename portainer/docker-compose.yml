@@ -1,0 +1,49 @@
+version: "3.3"
+
+services:
+
+
+
+    
+
+  portainerservice:
+     image: portainer/portainer-ce:latest
+     volumes:
+       - portainer_data:/data
+       - /var/run/docker.sock:/var/run/docker.sock
+     restart: unless-stopped
+     ports:
+       - "9443:9443"
+       - "900:9000"
+     networks:
+       - outside
+     labels:
+       - "traefik.enable=true"
+       
+       - "traefik.http.routers.portainer.rule=Host(`acer.myvnc.com`) && PathPrefix(`/portainer/`)"
+       - "traefik.http.routers.portainer.entrypoints=websecure"
+      
+       
+       - "traefik.http.routers.portainer.tls=true"
+       - "traefik.http.routers.portainer.tls.certresolver=leresolver"
+
+       - "traefik.http.services.portainer.loadbalancer.server.scheme=http"
+       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      
+       - "traefik.http.routers.portainer.middlewares=portainerpathstrip@docker" 
+       - "traefik.http.middlewares.portainerpathstrip.stripprefix.prefixes=/portainer"
+       
+       
+  
+
+
+volumes:
+  portainer_data:
+
+ 
+
+networks:
+   outside:
+     external:
+       name: traefik_default
+

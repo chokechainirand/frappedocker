@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+
+
+
+    nginx:
+        container_name: nginx-mainline
+        restart: unless-stopped
+        networks:
+            - outside
+        ports:
+          #  - '80:80'
+          #  - '443:443'
+            - '800:80'
+        image: 'nginx:mainline-alpine'
+        volumes:
+        #    - './html:/usr/share/nginx/html-2'
+        #    - './html/:/usr/share/nginx/html7/'
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+            - '/home/m/util-docker/nginx/html:/usr/share/nginx/html'
+            - '/home/m/frappe_docker/development/frappe-bench/sites:/usr/share/nginx/erpnext'
+            - '/home/m//frappe_docker/development/frappe-bench/apps/frappe/frappe/public:/usr/share/nginx/erpnext/assets/frappe'
+            - '/home/m/frappe_docker/development/frappe-bench/apps/erpnext/erpnext/public:/usr/share/nginx/erpnext/assets/erpnext'
+           
+            - '/home/m/util-docker/nginx/default.conf:/etc/nginx/conf.d/default.conf'
+
+        labels:
+            - "traefik.enable=true"
+
+            # HTTPS____
+       
+            - "traefik.http.routers.nghttps.rule=Host(`acer.myvnc.com`)"
+            - "traefik.http.routers.nghttps.entrypoints=websecure"
+            - "traefik.http.routers.nghttps.service=ngservicehttps"
+       
+            - "traefik.http.routers.nghttps.tls=true"
+            - "traefik.http.routers.nghttps.tls.certresolver=leresolver"
+
+            - "traefik.http.services.ngservicehttps.loadbalancer.server.scheme=http"
+            - "traefik.http.services.ngservicehttps.loadbalancer.server.port=80"
+
+            - "traefik.http.services.ngservicehttps.loadBalancer.sticky.cookie.name=server_id"
+            - "traefik.http.services.ngservicehttps.loadBalancer.sticky.cookie.secure=true"
+          #  - "traefik.http.services.ngservicehttps.loadBalancer.stickiness=true"
+
+      
+           # - "traefik.http.routers.ng.middlewares=ng@docker" 
+           # - "traefik.http.middlewares.ng.stripprefix.prefixes=/wdp"
+
+          # HTTP
+            - "traefik.http.routers.ng.rule=Host(`acer.myvnc.com`)"
+            - "traefik.http.routers.ng.entrypoints=web"
+            #- "traefik.http.routers.ng.service=ngservice"
+           # - "traefik.http.services.ngservice.loadbalancer.server.scheme=http"
+           # - "traefik.http.services.ngservice.loadbalancer.server.port=80"
+
+            # test sticky session
+            #- "traefik.http.services.ng.loadBalancer.sticky.cookie.name=server_id"
+            #- "traefik.http.services.ng.loadBalancer.sticky.cookie.httpOnly=true"
+
+           # - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto = https
+
+           ## SocketIO 
+           # - "traefik.http.routers.ngsocket.rule=Host(`acer.myvnc.com`)"
+           # - "traefik.http.routers.ngsocket.entrypoints=ws" # - "traefik.http.routers.test_websocket.tls=true" 
+           # - "traefik.http.services.ngsocket.loadbalancer.server.scheme=http"
+ 
+           # - "traefik.http.routers.ngsocket.service=ngsocket"
+           # - "traefik.http.services.ngsocket.loadbalancer.server.port=9000"
+  
+
+
+
+networks:
+   outside:
+     external:
+       name: traefik_default

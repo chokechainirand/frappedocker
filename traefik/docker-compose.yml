@@ -1,0 +1,65 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: "traefik:latest"
+    restart: unless-stopped
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.ws.address=:9000
+      - --entrypoints.vscode.address=:3333
+      - --providers.docker
+      - --api.insecure
+     
+     # SSL path
+      - --certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.leresolver.acme.email=chokechainirand@yahoo.com
+      - --certificatesresolvers.leresolver.acme.storage=/acme.json
+      - --certificatesresolvers.leresolver.acme.tlschallenge=true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "9000:9000"
+      - "3333:3333"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/home/m/util-docker/traefik/acme.json:/acme.json"
+    labels:
+      # Dashboard
+      #- "traefik.http.routers.traefik.rule=Host(`acer.myvnc.com`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+    
+      #___ set traefik dashboard + API. The API is available at: mydomain.club/api/http/routers & mydomain.club/api/rawdata
+     # - "traefik.http.routers.traefik.rule=Host(`acer.myvnc.com`) && (PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.traefik.rule=Host(`acer.myvnc.com`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=traefik"
+
+      #___ set TLS (https)
+      - "traefik.http.routers.traefik_https.rule=Host(`acer.myvnc.com`)"
+      - "traefik.http.routers.traefik_https.entrypoints=traefik"
+      - "traefik.http.routers.traefik_https.tls=true"
+      - "traefik.http.routers.traefik_https.tls.certresolver=leresolver"
+      - "traefik.http.routers.traefik_https.service=api@internal"
+      - "traefik.http.routers.traefik_https.middlewares=authtraefik"
+
+    
+    # user password
+    #  # - "traefik.http.routers.traefik.middlewares=authtraefik"
+    #  # - "traefik.http.middlewares.authtraefik.basicauth.users=user:$$apr1$$q8eZFHjF$$Fvmkk//V6Btlaf2i/ju5n/" # user/password
+    
+      - "traefik.http.routers.traefik.middlewares=authtraefik"
+      - "traefik.http.middlewares.authtraefik.basicauth.users=moo:$$apr1$$5Y9CeJr9$$CM/5l4C6wvfvDmVqzUmNn/" # user/password
+      
+    #   # global redirect to https
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+
+    #   # middleware redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+
+
+# Dashboard (https://localhost:8080)

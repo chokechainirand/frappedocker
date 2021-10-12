@@ -1,0 +1,33 @@
+version: '3.3'
+services:
+    openvscode-server:
+        ports:
+            - '3003:3000'
+        user: m
+        restart: unless-stopped
+        volumes:
+            - '/home/workspace/:/home/workspace/'
+            - ../..:/home/m/workspace:cached
+            - '/usr/bin/docker:/usr/bin/docker'
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/usr/local/bin:/usr/local/bin'
+        working_dir: /home/m/
+        image: 'gitpod/openvscode-server:latest'
+        labels:
+            - "traefik.enable=true"
+       
+            - "traefik.http.routers.o.rule=Host(`acer.myvnc.com`) && PathPrefix(`/o/`)"
+            - "traefik.http.routers.o.entrypoints=web"
+      
+       
+       #- "traefik.http.routers.portainer.tls=true"
+       #- "traefik.http.routers.portainer.tls.certresolver=leresolver"
+
+            - "traefik.http.services.o.loadbalancer.server.scheme=http"
+            - "traefik.http.services.o.loadbalancer.server.port=3003"
+      
+       #- "traefik.http.routers.portainer.middlewares=portainerpathstrip@docker" 
+       #- "traefik.http.middlewares.portainerpathstrip.stripprefix.prefixes=/portainer"
+  
+
+
